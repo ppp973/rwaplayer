@@ -134,7 +134,7 @@ const checkAllowedDomain = (req, res, next) => {
           </div>
           <h2>Access Denied</h2>
           <p>This player is exclusive to VIP members. Join our Telegram channel to get access!</p>
-          <a href="https://t.me/your_channel" class="join-btn" target="_blank">Join Telegram Channel</a>
+          <a href="https://t.me/+964XGWzjo-Y4YjQ1" class="join-btn" target="_blank">Join Telegram Channel</a>
           <div class="footer">© 2024 All Rights Reserved</div>
         </div>
       </body>
