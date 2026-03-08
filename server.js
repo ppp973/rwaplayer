@@ -7,8 +7,8 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 // Allowed website - only this domain can access
-const ALLOWED_DOMAIN = 'https://viprwa.vercel.app';
-const ALLOWED_DOMAIN_WITHOUT_PROTOCOL = 'viprwa.vercel.app';
+const ALLOWED_DOMAIN = 'https://rajiq.vercel.app';
+const ALLOWED_DOMAIN_WITHOUT_PROTOCOL = 'rajiq.vercel.app';
 
 // Middleware to check if request is from allowed domain
 const checkAllowedDomain = (req, res, next) => {
