@@ -6,158 +6,9 @@ const app = express();
 app.use(cors());
 const PORT = process.env.PORT || 3000;
 
-// Allowed website - only this domain can access
-const ALLOWED_DOMAIN = 'viprwa.vercel.app';
-const ALLOWED_DOMAIN_WITHOUT_PROTOCOL = 'viprwa.vercel.app';
-
-// Middleware to check if request is from allowed domain
-const checkAllowedDomain = (req, res, next) => {
-  // Skip check for direct API access (for development/testing)
-  if (req.path === '/health' || req.path === '/') {
-    return next();
-  }
-
-  const referer = req.headers.referer || req.headers.referrer || '';
-  const origin = req.headers.origin || '';
-  
-  // Allow if no referer/origin (direct API access) - but log it
-  if (!referer && !origin) {
-    console.log('Direct API access detected:', req.path);
-    return next(); // Allow but log
-  }
-
-  // Check if request comes from allowed domain
-  const isAllowed = referer.includes(ALLOWED_DOMAIN_WITHOUT_PROTOCOL) || 
-                   origin.includes(ALLOWED_DOMAIN_WITHOUT_PROTOCOL);
-
-  if (!isAllowed) {
-    console.log('Blocked request from:', referer || origin || 'unknown');
-    
-    // Send Telegram popup message
-    return res.status(403).send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Access Denied</title>
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-          }
-          .popup {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideIn 0.5s ease;
-          }
-          @keyframes slideIn {
-            from {
-              transform: translateY(-50px);
-              opacity: 0;
-            }
-            to {
-              transform: translateY(0);
-              opacity: 1;
-            }
-          }
-          .telegram-icon {
-            width: 80px;
-            height: 80px;
-            background: #0088cc;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 20px;
-          }
-          .telegram-icon svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-          }
-          h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
-          }
-          p {
-            color: #666;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-          }
-          .join-btn {
-            display: inline-block;
-            background: #0088cc;
-            color: white;
-            text-decoration: none;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(0,136,204,0.3);
-          }
-          .join-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,136,204,0.4);
-          }
-          .footer {
-            margin-top: 20px;
-            color: #999;
-            font-size: 12px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="popup">
-          <div class="telegram-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12 15.35l-2.01 1.93c-.23.23-.42.42-.83.42l.45-4.05"/>
-            </svg>
-          </div>
-          <h2>Access Denied</h2>
-          <p>This player is exclusive to VIP members. Join our Telegram channel to get access!</p>
-          <a href="https://t.me/+964XGWzjo-Y4YjQ1" class="join-btn" target="_blank">Join Telegram Channel</a>
-          <div class="footer">© 2024 All Rights Reserved</div>
-        </div>
-      </body>
-      </html>
-    `);
-  }
-
-  next();
-};
-
-// Apply middleware to all routes
-app.use(checkAllowedDomain);
-
-// X-Frame-Options middleware to prevent iframe embedding
-app.use((req, res, next) => {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
-  next();
-});
-
 // Proxy for .m3u8 playlists
 app.get('/proxy', async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_DOMAIN);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const { url } = req.query;
   if (!url) return res.status(400).send('Missing url parameter');
 
@@ -188,7 +39,7 @@ app.get('/proxy', async (req, res) => {
 
 // Proxy for .ts segments
 app.get('/segment', async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_DOMAIN);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const { base, file } = req.query;
   if (!base || !file) return res.status(400).send('Missing base or file parameter');
 
@@ -215,7 +66,7 @@ app.get('/segment', async (req, res) => {
 
 // PDF routes
 app.get('/pdf', async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_DOMAIN);
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const { url } = req.query;
   if (!url) return res.status(400).send('Missing url parameter');
 
@@ -1285,32 +1136,11 @@ app.get('/player', (req, res) => {
   res.send(html);
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.send('Server is running');
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <body style="background:#0a0a0a;color:white;display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;">
-        <div style="text-align:center;">
-          <h1>SNOW Proxy Server</h1>
-          <p>Use /player?url=YOUR_STREAM_URL to play videos</p>
-          <p>Use /pdf-viewer?url=YOUR_PDF_URL to view PDFs</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
 // Start server
 if (process.env.VERCEL) {
   module.exports = app;
 } else {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Only allowed domain: ${ALLOWED_DOMAIN}`);
   });
 }
